@@ -1,13 +1,9 @@
 # Python
 __pycache__/
 *.pyc
+
+# Virtual environment
 venv/
-.env
 
-# Node
-node_modules/
-dist/
-
-# System
-.DS_Store
-Thumbs.db
+# Local database
+*.db
