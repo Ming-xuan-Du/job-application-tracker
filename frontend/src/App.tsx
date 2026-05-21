@@ -7,6 +7,7 @@ type Application = {
   status: string;
   date_applied: string;
   notes: string;
+  deadline: string;
 };
 
 type ApplicationForm = {
@@ -15,6 +16,7 @@ type ApplicationForm = {
   status: string;
   date_applied: string;
   notes: string;
+  deadline: string;
 };
 
 const API_URL = "http://127.0.0.1:8000/applications";
@@ -28,9 +30,13 @@ function App() {
     status: "Applied",
     date_applied: "",
     notes: "",
+    deadline: "",
   });
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortOption, setSortOption] = useState("deadline");
 
   const fetchApplications = () => {
     fetch(API_URL)
@@ -65,6 +71,7 @@ function App() {
       status: "Applied",
       date_applied: "",
       notes: "",
+      deadline: "",
     });
 
     setEditingId(null);
@@ -112,8 +119,42 @@ function App() {
       status: application.status,
       date_applied: application.date_applied,
       notes: application.notes,
+      deadline: application.deadline,
     });
   };
+
+  const filteredApplications = applications
+  .filter((app) => {
+    const searchText = searchTerm.toLowerCase();
+
+    return (
+      app.company.toLowerCase().includes(searchText) ||
+      app.position.toLowerCase().includes(searchText) ||
+      app.notes.toLowerCase().includes(searchText)
+    );
+  })
+  .filter((app) => {
+    if (statusFilter === "All") {
+      return true;
+    }
+
+    return app.status === statusFilter;
+  })
+  .sort((a, b) => {
+    if (sortOption === "deadline") {
+      return a.deadline.localeCompare(b.deadline);
+    }
+
+    if (sortOption === "company") {
+      return a.company.localeCompare(b.company);
+    }
+
+    if (sortOption === "date_applied") {
+      return b.date_applied.localeCompare(a.date_applied);
+    }
+
+    return 0;
+  });
 
   return (
     <div style={{ padding: "30px", fontFamily: "Arial" }}>
@@ -186,6 +227,16 @@ function App() {
           />
         </div>
 
+        <div style={{marginBottom: "12px"}}>
+          <label>Deadline: </label>
+          <input
+            type="date"
+            name="deadline"
+            value={formData.deadline}
+            onChange={handleInputChange}
+          />
+        </div>
+
         <button type="submit">
           {editingId === null ? "Add Application" : "Update Application"}
         </button>
@@ -197,13 +248,60 @@ function App() {
         )}
       </form>
 
+      <h2>Search / Filter / Sort</h2>
+
+      <div
+        style={{
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          padding: "16px",
+          marginBottom: "24px",
+        }}
+      >
+        <div style={{ marginBottom: "12px"}}>
+          <label>Search: 
+            <input
+              type = "text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search company, position, notes"
+            />
+          </label>
+        </div>
+
+        <div style={{ marginBottom: "12px"}}>
+          <label> Status Filter: </label>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value = "All">All</option>
+            <option value = "Applied">Applied</option>
+            <option value = "Interview">Interview</option>
+            <option value = "Offer">Offer</option>
+            <option value = "Rejected">Rejected</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: "12px"}}>
+          <label>Sort By: </label>
+          <select
+            value={sortOption}
+            onChange={(event) => setSortOption(event.target.value)}
+          >
+            <option value = "deadline">Deadline</option>
+            <option value="company">Company</option>
+            <option value="date_applied">Date Applied</option>
+          </select>
+        </div>
+      </div>
+
       <h2>Applications</h2>
 
-      {applications.length === 0 ? (
+      {filteredApplications.length === 0 ? (
         <p>No applications found.</p>
       ) : (
         <div>
-          {applications.map((app) => (
+          {filteredApplications.map((app) => (
             <div
               key={app.id}
               style={{
@@ -229,6 +327,10 @@ function App() {
 
               <p>
                 <strong>Date Applied:</strong> {app.date_applied}
+              </p>
+
+              <p>
+                <strong>Deadline:</strong> {app.deadline || "No deadline"}
               </p>
 
               <p>
