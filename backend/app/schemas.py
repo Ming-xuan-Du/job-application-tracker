@@ -6,6 +6,7 @@ class JobApplicationBase(BaseModel):
     position: str
     status: str
     date_applied: str
+    deadline: Optional[str] = None
     notes: Optional[str] = None
 
 class JobApplicationCreate(JobApplicationBase):

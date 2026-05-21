@@ -9,4 +9,5 @@ class JobApplication(Base):
     position = Column(String)
     status = Column(String)
     date_applied = Column(String)
+    deadline = Column(String, nullable=True)
     notes = Column(String, nullable=True)

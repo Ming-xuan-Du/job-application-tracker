@@ -15,6 +15,7 @@ def create_application(db: Session, application: schemas.JobApplicationCreate):
         position=application.position,
         status=application.status,
         date_applied=application.date_applied,
+        deadline=application.deadline,
         notes=application.notes
     )
 
@@ -44,6 +45,7 @@ def update_application(db: Session, application_id: int, application: schemas.Jo
     db_application.status = application.status
     db_application.notes = application.notes
     db_application.data_applied = application.date_applied
+    db_application.deadline = application.deadline
 
     db.commit()
     db.refresh(db_application)
