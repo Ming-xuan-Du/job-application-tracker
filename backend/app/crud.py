@@ -32,3 +32,21 @@ def delete_application(db: Session, application_id: int):
         db.commit()
 
     return db_application
+
+def update_application(db: Session, application_id: int, application: schemas.JobApplicationCreate):
+    db_application = get_application(db, application_id)
+
+    if db_application is None:
+        return None
+
+    db_application.company = application.company
+    db_application.position = application.position
+    db_application.status = application.status
+    db_application.notes = application.notes
+    db_application.data_applied = application.date_applied
+
+    db.commit()
+    db.refresh(db_application)
+
+    return db_application
+
