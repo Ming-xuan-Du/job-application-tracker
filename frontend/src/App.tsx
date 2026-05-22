@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 type Application = {
   id: number;
@@ -156,9 +164,102 @@ function App() {
     return 0;
   });
 
+  const totalApplications = applications.length;
+
+  const appliedCount = applications.filter(
+    (app) => app.status == "Applied"
+  ).length;
+
+  const interviewCount = applications.filter(
+    (app) => app.status == "Interview"
+  ).length;
+
+  const offerCount = applications.filter(
+    (app) => app.status == "Offer"
+  ).length;
+
+  const rejectedCount = applications.filter(
+    (app) => app.status == "Rejected"
+  ).length;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const upcomingDeadlineCount = applications.filter(
+    (app) => app.deadline && app.deadline >= today
+  ).length;
+
+  const statusCharData = [
+    {status: "Applied", count: appliedCount},
+    {status: "Interview", count: interviewCount},
+    {status: "Offer", count: offerCount},
+    {status: "Rejected", count: rejectedCount},
+  ];
+
   return (
     <div style={{ padding: "30px", fontFamily: "Arial" }}>
       <h1>Job Application Tracker</h1>
+
+      <h2>Dashboard</h2>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginBottom: "24px"
+        }}
+      >
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Total</h3>
+          <p>{totalApplications}</p>
+        </div>
+
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Applied</h3>
+          <p>{appliedCount}</p>
+        </div>
+
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Interview</h3>
+          <p>{interviewCount}</p>
+        </div>
+
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Offer</h3>
+          <p>{offerCount}</p>
+        </div>
+
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Rejected</h3>
+          <p>{rejectedCount}</p>
+        </div>
+
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "16px", minWidth: "140px" }}>
+          <h3>Upcoming Deadlines</h3>
+          <p>{upcomingDeadlineCount}</p>
+        </div>
+      </div>
+
+      <div
+        style={{
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          padding: "16px",
+          marginBottom: "24px",
+          height: "300px",
+        }}
+      >
+        <h3>Applications by Status</h3>
+
+        <ResponsiveContainer width="100%" height="80%">
+          <BarChart data ={statusCharData}>
+            <XAxis dataKey="status" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar dataKey="count" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       <h2>{editingId === null ? "Add Application" : "Edit Application"}</h2>
 
