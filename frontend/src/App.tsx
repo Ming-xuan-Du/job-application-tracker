@@ -256,7 +256,7 @@ function App() {
             <XAxis dataKey="status" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="count" />
+            <Bar dataKey="count" fill="#60a5fa" />
           </BarChart>
         </ResponsiveContainer>
       </div>
