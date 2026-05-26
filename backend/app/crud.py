@@ -1,22 +1,26 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 
-def get_applications(db: Session):
-    return db.query(models.JobApplication).all()
-
-def get_application(db: Session, application_id: int):
+def get_applications_by_user(db: Session, user_id: int):
     return db.query(models.JobApplication).filter(
-        models.JobApplication.id == application_id
+        models.JobApplication.user_id == user_id
+    ).all()
+
+def get_application(db: Session, application_id: int, user_id: int):
+    return db.query(models.JobApplication).filter(
+        models.JobApplication.id == application_id,
+        models.JobApplication.user_id == user_id
     ).first()
 
-def create_application(db: Session, application: schemas.JobApplicationCreate):
+def create_application(db: Session, application: schemas.JobApplicationCreate, user_id: int):
     db_application = models.JobApplication(
         company=application.company,
         position=application.position,
         status=application.status,
         date_applied=application.date_applied,
         deadline=application.deadline,
-        notes=application.notes
+        notes=application.notes,
+        user_id = user_id
     )
 
     db.add(db_application)
@@ -25,8 +29,8 @@ def create_application(db: Session, application: schemas.JobApplicationCreate):
 
     return db_application
 
-def delete_application(db: Session, application_id: int):
-    db_application = get_application(db, application_id)
+def delete_application(db: Session, application_id: int, user_id: int):
+    db_application = get_application(db, application_id, user_id)
 
     if db_application:
         db.delete(db_application)
@@ -34,8 +38,8 @@ def delete_application(db: Session, application_id: int):
 
     return db_application
 
-def update_application(db: Session, application_id: int, application: schemas.JobApplicationCreate):
-    db_application = get_application(db, application_id)
+def update_application(db: Session, application_id: int, application: schemas.JobApplicationCreate, user_id: int):
+    db_application = get_application(db, application_id, user_id)
 
     if db_application is None:
         return None

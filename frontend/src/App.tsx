@@ -46,8 +46,25 @@ function App() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("deadline");
 
+  const[token, setToken] = useState < string | null >(
+    localStorage.getItem("token")
+  )
+
+  const [authEmail, setAuthEmail] = useState("")
+  const [authPassword, setAuthPassword] = useState("")
+  const [authError, setAuthError] = useState("")
+
   const fetchApplications = () => {
-    fetch(API_URL)
+    if(!token){
+      return;
+    }
+
+    fetch(API_URL, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
       .then((response) => response.json())
       .then((data) => {
         setApplications(data);
@@ -59,7 +76,7 @@ function App() {
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [token]);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -88,11 +105,16 @@ function App() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if(!token){
+      return;
+    }
+
     if (editingId === null) {
       await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -101,6 +123,7 @@ function App() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -111,12 +134,75 @@ function App() {
   };
 
   const handleDelete = async (id: number) => {
+    if(!token){
+      return;
+    }
+
     await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     fetchApplications();
   };
+
+  const handleLogin = async () => {
+    setAuthError("");
+
+    const formData = new URLSearchParams();
+    formData.append("username", authEmail);
+    formData.append("password", authPassword);
+
+    const response = await fetch("http://127.0.0.1:8000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    if(!response.ok) {
+      setAuthError("Invalid email or password");
+      return;
+    }
+
+    const data = await response.json();
+    localStorage.setItem("token", data.access_token);
+    setToken(data.access_token);
+    setAuthEmail("");
+    setAuthPassword("");
+  };
+
+  const handleRegister = async () => {
+    setAuthError("");
+
+    const response = await fetch("http://127.0.0.1:8000/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: authEmail,
+        password: authPassword,
+      }),
+    });
+
+    if(!response.ok) {
+      setAuthError("Registration failed. Email may already be used");
+      return;
+    }
+
+    await handleLogin();
+  };
+
+  const handleLogout = () =>{
+    localStorage.removeItem("token");
+    setToken(null);
+    setApplications([]);
+  };
+
 
   const handleEdit = (application: Application) => {
     setEditingId(application.id);
@@ -134,7 +220,7 @@ function App() {
   const filteredApplications = applications
   .filter((app) => {
     const searchText = searchTerm.toLowerCase();
-
+    
     return (
       app.company.toLowerCase().includes(searchText) ||
       app.position.toLowerCase().includes(searchText) ||
@@ -195,9 +281,58 @@ function App() {
     {status: "Rejected", count: rejectedCount},
   ];
 
+  if (!token) {
+    return (
+      <div
+        style={{
+          padding: "30px",
+          fontFamily: "Arial",
+          maxWidth: "420px",
+          margin: "80px auto",
+          border: "1px solid #ddd",
+          borderRadius: "12px",
+        }}
+      >
+        <h1>Job Application Tracker</h1>
+        <h2>Login or Register</h2>
+
+        {authError && <p style={{ color: "red" }}>{authError}</p>}
+
+        <div style={{ marginBottom: "12px" }}>
+          <label>Email: </label>
+          <input
+            type="email"
+            value={authEmail}
+            onChange={(event) => setAuthEmail(event.target.value)}
+            style={{ width: "100%", padding: "8px", marginTop: "4px" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "12px" }}>
+          <label>Password: </label>
+          <input
+            type="password"
+            value={authPassword}
+            onChange={(event) => setAuthPassword(event.target.value)}
+            style={{ width: "100%", padding: "8px", marginTop: "4px" }}
+          />
+        </div>
+
+        <button onClick={handleLogin} style={{ marginRight: "8px" }}>
+          Login
+        </button>
+
+        <button onClick={handleRegister}>
+          Register
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "30px", fontFamily: "Arial" }}>
       <h1>Job Application Tracker</h1>
+      <button onClick={handleLogout}>Logout</button>
 
       <h2>Dashboard</h2>
 
